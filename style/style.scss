@@ -157,7 +157,8 @@ body {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-
+                cursor:pointer;
+                
                 img {
                     height: 20px;
                     pointer-events: none;
@@ -174,7 +175,9 @@ body {
                 align-items: center;
                 justify-content: center;
                 user-select: none;
+                cursor:pointer;
             }
+
         }
     }
 

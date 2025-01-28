@@ -197,6 +197,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 .game-container .control-container .buttons-container .reset img, .game-container .control-container .buttons-container .shuffle img {
   height: 20px;
@@ -215,6 +216,7 @@ body {
   -webkit-user-select: none;
      -moz-user-select: none;
           user-select: none;
+  cursor: pointer;
 }
 .game-container .tile {
   width: var(--tile-width);

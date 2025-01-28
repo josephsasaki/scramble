@@ -25,7 +25,9 @@ const LOCKED_COLOURS = [
 ];
 const GLOBAL_RNG = generateGlobalRNG(testing=false);
 const LETTERS =  generateLetters();
+const VALID_WORDS_CACHE = [];
 let CURRENT_ROUND;
+let CHECK_IS_RUNNING = false;
 
 
 /** ---------- GAME GENERATION ---------- */ 
@@ -298,6 +300,7 @@ function shuffleLetters() {
 
 /** ---------- SOLUTION VALIDITY ---------- */ 
 
+
 /**
  * Check whether the current solution is valid. If so, proceed to the next round.
  * 
@@ -309,35 +312,49 @@ function shuffleLetters() {
  * If these conditions are met, we move to the next round.
  * If conditions are not met, the relevant error messaging it produced.
  */
-function checkRound() {
+async function checkRound() {
+    if (CHECK_IS_RUNNING) {
+        return;
+    }
+    CHECK_IS_RUNNING = true;
+
     if (!allLettersPlaced()) {
+        CHECK_IS_RUNNING = false;
         return;
     }
     let letterGrid = generateLetterGrid()
     if (!isAllConnected(letterGrid)) {
+        CHECK_IS_RUNNING = false;
         return;
     }
     let found = extractWords(letterGrid);
     let words = found[0];
     let indexes = found[1];
-    if (!allValidWords(words, indexes)) {
+    let validWords = await allValidWords(words, indexes);
+    if (!validWords) {
+        CHECK_IS_RUNNING = false;
         return;
     }
     // if this point reached, valid solution
     // lock all the letters
     lockValidTiles(words, indexes)
     // save cookies up until this point
-    setCookie("save", storeProgressAsString(), 1);
-    setCookie("round", CURRENT_ROUND, 1);
+    //setCookie("save", storeProgressAsString(), 1);
+    //setCookie("round", CURRENT_ROUND, 1);
     // move to the next round
     // 5 rounds must be completed before the game is finished
-    if (CURRENT_ROUND<4) {
-        CURRENT_ROUND+=1;
-        setTimeout(function(){generateTiles(CURRENT_ROUND);}, 1500);
-    }
-    else {
-        setTimeout(function(){gameFinish();}, 1500);
-    }
+    setTimeout(function(){
+        CHECK_IS_RUNNING = false;
+        if (CURRENT_ROUND<4) {
+            CURRENT_ROUND+=1;
+            generateTiles(CURRENT_ROUND);
+        }
+        else {
+            gameFinish();
+        }
+    }, 1500);
+    
+    
 }
 
 /**
@@ -413,11 +430,17 @@ function isAllConnected(letterGrid) {
  * 
  * @param {array[string]} words - a list of words to check whether valid.
  */
-function allValidWords(words, indexes) {
+async function allValidWords(words, indexes) {
     let validity = []
     for (let i = 0, word; i < words.length; i++) {
-        word = words[i];
-        validity.push(isValidWord(word));
+        word = words[i]
+        if (VALID_WORDS_CACHE.includes(word)) {
+            validity.push(true);
+        }
+        else {
+            VALID_WORDS_CACHE.push(word);
+            validity.push(await isValidWord(word));
+        }
     }
     if (validity.every(Boolean)) {
         return true;
@@ -514,7 +537,7 @@ function showInvalidMessage(messageContent) {
     message.setAttribute("class", "message");
     errorBox.insertBefore(message, errorBox.firstChild);
 
-    tile.addEventListener('animationend', function() {
+    message.addEventListener('animationend', function() {
         message.remove();
     }, { once: true });
 }
@@ -620,12 +643,32 @@ function lineExtractWords(line, valid, index, direction) {
     return [words, indexes];
 }
 
+
 /**
  * Checks whether the word is a valid English word.
  * @param {string} word - word to be checked
  * @returns {boolean} - whether the word is valid.
  */
-function isValidWord(word) {
+async function isValidWord(word) {
+    word = word.toLowerCase();
+    const url_1 = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+    const response_forward = await fetch(url_1, {
+        method: "GET"
+    })
+    if (response_forward.status < 300) {
+        return true;
+    }
+    reversed_word = word.split("").reverse().join("");
+    const url_2 = `https://api.dictionaryapi.dev/api/v2/entries/en/${reversed_word}`
+    const response_backward = await fetch(url_2, {
+        method: "GET"
+    })
+    if (response_backward.status < 300) {
+        return true;
+    }
+    return false;
+
+    /** 
     word = word.toLowerCase();
     for (let i = 0, dict_word; i < ENGLISH_DICT.length; i++) {
         dict_word = ENGLISH_DICT[i];
@@ -651,6 +694,7 @@ function isValidWord(word) {
         }
     }
     return false;
+    */
 }
 
 /**
