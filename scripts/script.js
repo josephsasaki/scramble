@@ -1,61 +1,59 @@
 // http link for opening page on other devices
 // 192.168.0.161:5500/Version_2/
 
-// Constants
+// Global Constants
 
-var TEST_LETTERS = [
-    ['S', 'T', 'A', 'G', 'E', 'D', 'R', 'E'],
-    ['R', 'W', 'O', 'L', 'E', 'D', 'I', 'M'],
-    ['I', 'R', 'E', 'A', 'M', 'S', 'O', 'T'],
-    ['G', 'O', 'E', 'E', 'T', 'A', 'I', 'H'],
-    ['O', 'N', 'R', 'O', 'T', 'O', 'D', 'A'],
-];
 const VOWELS = ['A', 'E', 'I', 'O', 'U'];
 const CONSONANTS = [
     ['L', 'N', 'S', 'T', 'R', 'D', 'G'],
     ['B', 'C', 'M', 'P', 'F', 'H'],
     ['V', 'W', 'Y', 'K', 'J', 'X', 'Q', 'Z'],
 ];
-var LOCKED_COLOURS = [
+const EASY_ROUND_PROBABILITY = 0.7
+const FOURTH_VOWEL_PROBABILITY = 0.5
+const FOURTH_EASY_CONSONANT_PROBABILITY = 0.5
+const LOCKED_COLOURS = [
     ["#F6CE46", "#c7a537"],
     ["#92D050", "#6c9a3b"],
     ["#9BC2E6", "#6c87a0"],
     ["#b18dcf", "#785f8d"],
     ["#e39b9b", "#a17070"]
 ];
+const GLOBAL_RNG = generateGlobalRNG(testing=false);
+const LETTERS =  generateLetters();
+let CURRENT_ROUND;
 
-// Game generation
-
-var GLOBAL_RNG = generateGlobalRNG(testing=false);
-generateSlots();
-var LETTERS =  generateLetters(); //TEST_LETTERS;
-var ROUND;
-
-if (getCookie("save")=="") {
-    // if there are not saved cookies for this day,
-    ROUND = 0;
-    generateTiles(ROUND);
-} else {
-    var cookie = getCookie("save");
-    ROUND = parseInt(getCookie("round"));
-    for (var i = 0; i <= ROUND; i++) {
-        generateTiles(i, delay=false);
+/**
+ * Run when the HTML is loaded, and sets up the game.
+ * Here, the grid slots are first generated. Then cookies are checked for game progress.
+ */
+function gameSetup() {
+    // generate grid slots
+    generateSlots();
+    // get current round
+    if (cookiesPresent()) {
+        CURRENT_ROUND = 0;
     }
-    stringToGrid(cookie);
-    ROUND += 1;
-    if (ROUND==5) {
-        finish();
-    } else {
-        generateTiles(ROUND);
+    else {
+        CURRENT_ROUND = parseInt(getCookie("round"))
     }
+
+    if (CURRENT_ROUND == 0) {
+        generateTiles(0);
+    }
+    elif (CURRENT_ROUND < 5) {
+
+    }
+
 }
 
-
+/**
+ * Generates the grid slots that letters can be dragged into. The function is run when the
+ * page is loaded.
+ */
 function generateSlots() {
-    // The following function generates the grid slots. This function is run when the page is 
-    // loaded. 
-    var grid = document.getElementById("grid");
-    for (var i = 0, slot; i < 64; i++) {
+    let grid = document.getElementById("grid");
+    for (let i = 0, slot; i < 64; i++) {
         slot = document.createElement('div');
         slot.setAttribute('class', 'slot');
         slot.setAttribute('id', "slot"+String(i));
@@ -65,79 +63,90 @@ function generateSlots() {
     }
 }
 
+
+/**
+ * Generate the sequence of letters that will appear in rounds throughout the game.
+ * 
+ * Each round has a difficult: easy or hard. The first round is always guaranteed to be easy,
+ * and the consequent 5 rounds have a 0.7 chance of being easy, 0.3 chance of being hard.
+ * 
+ * Easy rounds will always have at least 3 vowels, 2 easy consonants and 2 medium consonants.
+ * Then, the final remaining letter has a 0.5 chance of being a vowel, 0.25 chance of being 
+ * an easy consonant, and 0.25 chance of being a medium consonant.
+ * 
+ * Hard rounds always have 3 vowels, 2 easy consonants, 2 medium consonants, and 1 hard consonant.
+ * If the hard consonant is the letter 'Q', a 'u' is guaranteed as one of the vowels.  
+ */
 function generateLetters() {
-    // Procedure for letter generation:
-    // Each round (except the first) can either be "easy" or "hard" (70/30). 
-
-    // "easy":
-    // - 3/4 vowels
-    // - 2 easy consonants
-    // - 2 medium consonants
-    // - 1/0 extra consonant
-    // - (50/50)
-    // "hard":
-    // - 3 vowels
-    // - 2 easy letters
-    // - 2 medium letters
-    // - 1 hard letter
-
-    var letters = [];
-    var round;
-    var easy;
-    var forceU;
-    var fourthVowel;
-    for (var i = 0; i<5; i++) {
+    let letters = [];
+    let round;
+    let isEasyRound;
+    let hardConsonant;
+    let vowels;
+    let forceU;
+    for (let i = 0; i<5; i++) {
         round = [];
-
         // choose whether the round is easy or hard
         if (i<1) {
-            easy = true;
+            isEasyRound = true;
         } else {
-            easy = binOut(0.7);
+            isEasyRound = binOut(EASY_ROUND_PROBABILITY);
         }
-
         // depending on round difficulty, generate letters
-        if (!easy) {
-            hard_letter = pick(CONSONANTS[2], 1);
-            if (hard_letter=="Q") {forceU = true;} else {forceU = false;}
-            // add one hard letter
-            round = round.concat(hard_letter);
-            // add two easy con
+        if (!isEasyRound) {
+            hardConsonant = pick(CONSONANTS[2], 1);
+            if (hardConsonant=="Q") {forceU = true;} else {forceU = false;}
+            // add the hard consonants
+            round = round.concat(hardConsonant);
+            // add two easy consonants
             round = round.concat(pick(CONSONANTS[0], 2));
-            // add two medium con 
+            // add two medium consonants 
             round = round.concat(pick(CONSONANTS[1], 2));
             // add three vowels
-            var vowels = pick(VOWELS, 3);
+            vowels = pick(VOWELS, 3);
             if (forceU && !vowels.includes("U")) {
                 vowels[0] = "U";
             }
             round = round.concat(vowels);
         }
         else {
+            // add three vowels
             round = round.concat(pick(VOWELS, 3));
+            // add two easy consonants
             round = round.concat(pick(CONSONANTS[0], 2));
+            // add two medium consonants
             round = round.concat(pick(CONSONANTS[1], 2));
-            fourthVowel = binOut(0.5);
-            if (fourthVowel) {
+            // choose whether the final letter is a vowel or consonant
+            if (binOut(FOURTH_VOWEL_PROBABILITY)) {
                 round = round.concat(pick(VOWELS, 1));
             }
-            else if (binOut(0.5)) {
+            // choose whether the final letter is an easy or medium consonant
+            else if (binOut(FOURTH_EASY_CONSONANT_PROBABILITY)) {
                 round = round.concat(pick(CONSONANTS[0], 1));
             }
             else {
                 round = round.concat(pick(CONSONANTS[1], 1));
             }
         }
+        // add the round letters list to the final letters list
         letters.push(round);
     }
     return letters;
 }
 
-function generateTiles(round, delay=true) {
-    var letterBox = document.getElementById("box");
-    var letters = LETTERS[round];
-    var tiles = [];
-    for (var i = 0, tile; i < letters.length; i++) {
+
+/**
+ * Generate the letter tiles for a particular round, and add the divs to the letter box.
+ * 
+ * 
+ * @param {number} roundIndex - the round index to which tiles should be made
+ * @param {boolean} delay - whether the tiles appear with a delay (default to true)
+ */
+function generateTiles(roundIndex, delay=true) {
+    let letterBox = document.getElementById("box");
+    let letters = LETTERS[roundIndex];
+    let tiles = [];
+    for (let i = 0, tile; i < letters.length; i++) {
         tile = document.createElement('div');
         tile.textContent = letters[i];
         tile.setAttribute('class', 'tile');
@@ -145,9 +154,9 @@ function generateTiles(round, delay=true) {
         tile.setAttribute("ondragstart", "drag(event)");
         tile.setAttribute("ondrop", "swap(event)");
         tile.setAttribute("ondragover", "allowDrop(event)");
-        tile.setAttribute('id', "tile"+String((round*8)+i));
+        tile.setAttribute('id', "tile"+String((roundIndex*8)+i));
         tile.setAttribute('round-id', i);
-        tile.setAttribute('round', round);
+        tile.setAttribute('round', roundIndex);
         tiles.push(tile);
         letterBox.appendChild(tile);
     }
@@ -167,10 +176,10 @@ function generateTiles(round, delay=true) {
 // Reset and shuffle buttons
 
 function reset() {
-    var letterBox = document.getElementById("box");
-    var tiles = Array.prototype.slice.call( document.getElementsByClassName('tile') );
+    let letterBox = document.getElementById("box");
+    let tiles = Array.prototype.slice.call( document.getElementsByClassName('tile') );
     tiles.forEach(tile => {
-        if (parseInt(tile.getAttribute('round'))==ROUND) {
+        if (parseInt(tile.getAttribute('round'))==CURRENT_ROUND) {
             if (tile.parentElement.id!="box") {
                 letterBox.appendChild(tile);
             }
@@ -179,7 +188,7 @@ function reset() {
 }
 
 function shuffle() {
-    var letterBox = document.getElementById("box")
+    let letterBox = document.getElementById("box")
     // Get the children of the parent element
     const tiles = Array.from(letterBox.children);
     
@@ -208,16 +217,16 @@ function check() {
     // seperate function).
 
     // (1)
-    var letterBox = document.getElementById("box");
+    let letterBox = document.getElementById("box");
     if (letterBox.hasChildNodes()) {
         showInvalidMessage("All letters must be used.");
         return;
     }
 
     // Next, we produce the letter grid
-    var letters = [];
-    var count = 8*8;
-    for (var i = 0, slot; i < count; i++) {
+    let letters = [];
+    let count = 8*8;
+    for (let i = 0, slot; i < count; i++) {
         slot = document.getElementById("slot"+String(i));
         if (slot.hasChildNodes()) {
             letters.push(slot.childNodes[0].textContent);
@@ -225,7 +234,7 @@ function check() {
             letters.push(null);
         }
     }
-    var letterGrid = convertTo2DArray(letters, 8, 8);
+    let letterGrid = convertTo2DArray(letters, 8, 8);
 
     // (2)
     if (!isAllConnected(letterGrid)) {
@@ -234,11 +243,11 @@ function check() {
     }
 
     // (3)
-    var found = extractWords(letterGrid);
+    let found = extractWords(letterGrid);
     words = found[0];
     indexes = found[1];
-    var validity = []
-    for (var i = 0, word; i < words.length; i++) {
+    let validity = []
+    for (let i = 0, word; i < words.length; i++) {
         word = words[i];
         validity.push(searchString(word));
     }
@@ -253,8 +262,8 @@ function check() {
 }
 
 function showInvalidMessage(str) {
-    var errorBox = document.getElementById("message-box");
-    var message = document.createElement('div');
+    let errorBox = document.getElementById("message-box");
+    let message = document.createElement('div');
     message.textContent = str;
     message.setAttribute("class", "message");
     errorBox.insertBefore(message, errorBox.firstChild);
@@ -265,8 +274,8 @@ function showInvalidMessage(str) {
 }
 
 function highlightIncorrect(indexes, validity) {
-    var invalid_indexes = [];
-    for (var i = 0; i < words.length; i++) {
+    let invalid_indexes = [];
+    for (let i = 0; i < words.length; i++) {
         if (validity[i]) {
             continue;
         }
@@ -274,8 +283,8 @@ function highlightIncorrect(indexes, validity) {
     }
     invalid_indexes = [...new Set(invalid_indexes)];
 
-    var tiles = [];
-    for (var i = 0, tile, slot; i < invalid_indexes.length; i++) {
+    let tiles = [];
+    for (let i = 0, tile, slot; i < invalid_indexes.length; i++) {
         slot = document.getElementById("slot"+String(invalid_indexes[i]))
         tile = slot.childNodes[0];
         tiles.push(tile);
@@ -292,24 +301,24 @@ function highlightIncorrect(indexes, validity) {
 
 function nextRound(indexes) {
 
-    var valid_indexes = [];
-    for (var i = 0; i < words.length; i++) {
+    let valid_indexes = [];
+    for (let i = 0; i < words.length; i++) {
         valid_indexes = valid_indexes.concat(indexConverter(indexes[i]));
     }
     valid_indexes = [...new Set(valid_indexes)];
 
-    var tiles = [];
-    for (var i = 0, tile, slot; i < valid_indexes.length; i++) {
+    let tiles = [];
+    for (let i = 0, tile, slot; i < valid_indexes.length; i++) {
         slot = document.getElementById("slot"+String(valid_indexes[i]))
         tile = slot.childNodes[0];
         tiles.push(tile);
     }
 
     tiles.forEach(tile => {
-        if (tile.getAttribute("round")==parseInt(ROUND)) {
+        if (tile.getAttribute("round")==parseInt(CURRENT_ROUND)) {
             tile.setAttribute('draggable', "false");
-            tile.style.backgroundColor = LOCKED_COLOURS[ROUND][0];
-            tile.style.boxShadow = "0px -4px inset " + LOCKED_COLOURS[ROUND][1];
+            tile.style.backgroundColor = LOCKED_COLOURS[CURRENT_ROUND][0];
+            tile.style.boxShadow = "0px -4px inset " + LOCKED_COLOURS[CURRENT_ROUND][1];
 
             tile.classList.add('locked');
             tile.addEventListener('animationend', function() {
@@ -320,13 +329,13 @@ function nextRound(indexes) {
 
     // save cookies
     setCookie("save", gridToString(), 1);
-    setCookie("round", ROUND, 1);
+    setCookie("round", CURRENT_ROUND, 1);
 
-    ROUND+=1;
+    CURRENT_ROUND+=1;
     // 5 rounds must be completed before the game is finished
     
-    if (ROUND<5) {
-        setTimeout(function(){generateTiles(ROUND);}, 1500);
+    if (CURRENT_ROUND<5) {
+        setTimeout(function(){generateTiles(CURRENT_ROUND);}, 1500);
     }
     else {
         setTimeout(function(){finish();}, 1500);
@@ -348,22 +357,23 @@ function finish() {
 }
 
 function openPopup() {
-    var messageBox = document.getElementById("message-box");
+    let messageBox = document.getElementById("message-box");
     messageBox.style.backgroundColor= "rgba(100, 100, 100, 0.8)";
     messageBox.style.pointerEvents = "auto";
-    var finish = document.getElementById("finish");
+    let finish = document.getElementById("finish");
     finish.style.display = "flex";
 }
 
 function closePopup() {
-    var messageBox = document.getElementById("message-box");
+    let messageBox = document.getElementById("message-box");
     messageBox.style.backgroundColor = "rgba(100, 100, 100, 0)";
     messageBox.style.pointerEvents = "none";
-    var finish = document.getElementById("finish");
+    let finish = document.getElementById("finish");
     finish.style.display = "none";
 }
 
 // Auxillary functions
+
 
 function binOut(p) {
     if (GLOBAL_RNG.nextFloat()<p) {
@@ -441,11 +451,11 @@ function isAllConnected(grid) {
 }
 
 function convertTo2DArray(flatArray, rows, cols) {
-    var twoDArray = [];
-    var index = 0;
-    for (var i = 0; i < rows; i++) {
+    let twoDArray = [];
+    let index = 0;
+    for (let i = 0; i < rows; i++) {
         twoDArray[i] = [];
-        for (var j = 0; j < cols; j++) {
+        for (let j = 0; j < cols; j++) {
         twoDArray[i][j] = flatArray[index++];
         }
     }
@@ -453,13 +463,13 @@ function convertTo2DArray(flatArray, rows, cols) {
 }
 
 function indexConverter(index) {
-    var formatted_indexes = [];
-    var direction = index[0];
-    var i = index[1];
-    var start = index[2];
-    var end = index[3];
+    let formatted_indexes = [];
+    let direction = index[0];
+    let i = index[1];
+    let start = index[2];
+    let end = index[3];
 
-    for (var n = start, val; n < end; n++) {
+    for (let n = start, val; n < end; n++) {
         if (direction=="row") {
             val = (i*8)+n;
         } else {
@@ -472,18 +482,17 @@ function indexConverter(index) {
 }
 
 function extractWords(grid) {
-    size = grid.length;
-    validH = convertTo2DArray(Array(size*size).fill(false), size, size);
-    validV = convertTo2DArray(Array(size*size).fill(false), size, size);
+    let size = grid.length;
+    let validH = convertTo2DArray(Array(size*size).fill(false), size, size);
+    let validV = convertTo2DArray(Array(size*size).fill(false), size, size);
 
     // First, we check whether each position is horizontally/vertically valid.
     // A position is valid in a direction if it is adjacent to other letters.
     
-    for (var i=0; i<size; i++) {
-        for (var j=0; j<size; j++) {
+    for (let i=0; i<size; i++) {
+        for (let j=0; j<size; j++) {
             if (grid[i][j]!=null) {
 
-                var validH, validV;
                 // check for horizontal neighbours
                 if ((j-1!=-1 && grid[i][j-1]!=null) || (j+1!=size && grid[i][j+1]!=null)) {
                     validH[i][j] = true;
@@ -501,11 +510,11 @@ function extractWords(grid) {
     }
 
     // Now that we have found which positions are valid in each directions, words can be extracted.
-    var words = [];
-    var indexes = [];
-    var valid = [];
+    let words = [];
+    let indexes = [];
+    let valid = [];
     // find horizontal words
-    for (var i=0, row; i<size; i++) {
+    for (let i=0, row; i<size; i++) {
         row = grid[i];
         valid = validH[i];
         found = lineExtractWords(row, valid, i, 'row');
@@ -513,10 +522,10 @@ function extractWords(grid) {
         indexes = indexes.concat(found[1]);
     }
     // find vertical words
-    for (var i=0, col; i<size; i++) {
+    for (let i=0, col; i<size; i++) {
         col = [];
         valid = [];
-        for (var j=0; j<size; j++) {
+        for (let j=0; j<size; j++) {
             col.push(grid[j][i]);
             valid.push(validV[j][i]);
         }
@@ -528,11 +537,11 @@ function extractWords(grid) {
 }
 
 function lineExtractWords(line, valid, index, direction) {
-    var words = [];
-    var indexes = [];
-    var currentWord = "";
-    var currentIndex = [direction, index, 0, 0];
-    for (var i=0; i<line.length; i++) {
+    let words = [];
+    let indexes = [];
+    let currentWord = "";
+    let currentIndex = [direction, index, 0, 0];
+    for (let i=0; i<line.length; i++) {
         if (line[i]!=null && valid[i]) {
             currentWord += line[i];
             currentIndex[3]+=1;
@@ -556,16 +565,16 @@ function lineExtractWords(line, valid, index, direction) {
 
 function searchString(word) {
     word = word.toLowerCase();
-    for (var i = 0, dict_word; i < ENGLISH_DICT.length; i++) {
+    for (let i = 0, dict_word; i < ENGLISH_DICT.length; i++) {
         dict_word = ENGLISH_DICT[i];
 
         if (dict_word.length!=word.length) {
             continue;
         }
-        var n = dict_word.length;
+        let n = dict_word.length;
 
         forward_word_check: {
-            for (var j = 0; j < n; j++) {
+            for (let j = 0; j < n; j++) {
                 if (dict_word[j]!=word[j]) {
                     break forward_word_check;
                 }
@@ -573,7 +582,7 @@ function searchString(word) {
             return true;
         }
         backwards_word_check: {
-            for (var j = 0; j < n; j++) {
+            for (let j = 0; j < n; j++) {
                 if (dict_word[j]!=word[n-1-j]) {
                     break backwards_word_check;
                 }
@@ -586,17 +595,17 @@ function searchString(word) {
 }
 
 function createEmojiGrid() {
-    var htmlEmojiGrid = document.getElementById("emoji-grid");
+    let htmlEmojiGrid = document.getElementById("emoji-grid");
     emojiCodes = ["🟨", "🟩", "🟦", "🟪", "🟥", "⬜"];
 
-    var txt = "";
-    for (var i = 0; i < 8; i++) {
-        for (var j = 0; j < 8; j++) {
-            var x = 8*i + j;
-            var slot = document.getElementById("slot"+String(x));
+    let txt = "";
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            let x = 8*i + j;
+            let slot = document.getElementById("slot"+String(x));
             if (slot.hasChildNodes()) {
-                var tile = slot.childNodes[0];
-                var round = parseInt(tile.getAttribute("round"));
+                let tile = slot.childNodes[0];
+                let round = parseInt(tile.getAttribute("round"));
                 txt += emojiCodes[round];
             } else {
                 txt += emojiCodes[5];
@@ -605,4 +614,40 @@ function createEmojiGrid() {
         txt += "\n";
     }
     htmlEmojiGrid.textContent = txt;
+}
+
+
+function gridToString() {
+    var tileArray = [];
+    var tiles = Array.prototype.slice.call( document.getElementsByClassName("tile") );
+    var slot;
+    tiles.forEach(tile => {
+        if (tile.parentElement.className=="slot") {
+            slot = tile.parentElement;
+            tileArray.push(tile.id + ":" + slot.id);
+        } else {
+            tileArray.push(tile.id + ":#");
+        }
+    });
+    return tileArray.join("-");
+}
+
+function stringToGrid(string) {
+    var letterBox = document.getElementById("box");
+    var strArray = string.split("-");
+    var tile, slot, x, round;
+    strArray.forEach(str => {
+        x = str.split(":");
+        tile = document.getElementById(x[0]);
+        if (x[1]!="#") {
+            round = parseInt(tile.getAttribute("round"));
+            tile.setAttribute('draggable', "false");
+            tile.style.backgroundColor = LOCKED_COLOURS[round][0];
+            tile.style.boxShadow = "0px -4px inset " + LOCKED_COLOURS[round][1];
+            slot = document.getElementById(x[1]);
+            slot.appendChild(tile);
+        } else {
+            letterBox.appendChild(tile);
+        }
+    });
 }
