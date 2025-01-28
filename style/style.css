@@ -1,0 +1,287 @@
+@keyframes appear {
+  0% {
+    display: none;
+    transform: rotateY(90deg);
+  }
+  1% {
+    display: block;
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+@keyframes fade-away {
+  0% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes invalid_wiggle {
+  0% {
+    box-shadow: 0px -3px inset #9d382c;
+    background-color: #f65846;
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes locked {
+  50% {
+    transform: scale(0.5, 0.5);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+@keyframes popup {
+  0% {
+    transform: translateY(500px);
+    animation-timing-function: ease-in;
+    opacity: 0;
+  }
+  38% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(65px);
+    animation-timing-function: ease-in;
+  }
+  72% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  81% {
+    transform: translateY(28px);
+    animation-timing-function: ease-in;
+  }
+  90% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  95% {
+    transform: translateY(8px);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+}
+#confetti-canvas {
+  z-index: 100;
+}
+
+:root {
+  --theme-color: #f6c4d3;
+  --gray-color: rgb(227, 227, 227);
+}
+@media only screen and (max-width: 500px) {
+  :root {
+    --header-height: 80px;
+    --tile-width: 10vw;
+    --border-radius: 2vw;
+  }
+}
+@media only screen and (min-width: 500px) and (max-width: 1000px) {
+  :root {
+    --header-height: 80px;
+    --tile-width: 45px;
+    --border-radius: 10px;
+  }
+}
+@media only screen and (min-width: 1000px) {
+  :root {
+    --header-height: 80px;
+    --tile-width: 45px;
+    --border-radius: 10px;
+  }
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.header {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  height: var(--header-height);
+  border-bottom: var(--gray-color) 1px solid;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.header .logo {
+  height: 90px;
+}
+
+.game-container {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  margin-top: 20px;
+  height: 80%;
+  top: var(--header-height);
+}
+.game-container .grid {
+  display: grid;
+  grid-template-columns: repeat(8, auto);
+  grid-template-rows: repeat(8, auto);
+  gap: 3px;
+  padding: 3px;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+.game-container .grid .slot {
+  width: var(--tile-width);
+  height: var(--tile-width);
+  background-color: var(--gray-color);
+  border-radius: var(--border-radius);
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.game-container .control-container {
+  display: flex;
+  margin-top: 10px;
+}
+.game-container .control-container .box {
+  display: grid;
+  grid-template-columns: repeat(4, var(--tile-width));
+  grid-template-rows: repeat(2, var(--tile-width));
+  gap: 6px;
+  width: -moz-fit-content;
+  width: fit-content;
+  padding: 6px;
+  background-color: var(--gray-color);
+  border-radius: var(--border-radius);
+}
+.game-container .control-container .buttons-container {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-template-rows: 30% 70%;
+  margin-left: 10px;
+}
+.game-container .control-container .buttons-container .reset, .game-container .control-container .buttons-container .shuffle {
+  margin: 4px;
+  background-color: var(--gray-color);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.game-container .control-container .buttons-container .reset img, .game-container .control-container .buttons-container .shuffle img {
+  height: 20px;
+  pointer-events: none;
+}
+.game-container .control-container .buttons-container .check {
+  margin: 4px;
+  margin-top: 10px;
+  background-color: var(--gray-color);
+  grid-column-start: 1;
+  grid-column-end: 3;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.game-container .tile {
+  width: var(--tile-width);
+  height: var(--tile-width);
+  background-color: #f2eeca;
+  border-radius: var(--border-radius);
+  box-shadow: 0px -3px inset #b8b599;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 150%;
+  color: rgb(76, 76, 76);
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.game-container .appear {
+  animation: appear 1s both;
+}
+.game-container .invalid-tile {
+  animation: invalid_wiggle 0.5s forwards;
+}
+.game-container .locked {
+  animation: locked 0.8s forwards;
+}
+
+.message-box {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: rgba(100, 100, 100, 0);
+}
+.message-box .message {
+  background-color: rgb(76, 76, 76);
+  color: white;
+  padding: 8px;
+  border-radius: var(--border-radius);
+  margin-top: 10px;
+  animation: fade-away 2s forwards;
+}
+.message-box .finish {
+  background-color: white;
+  width: 300px;
+  height: 400px;
+  border-radius: var(--border-radius);
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  opacity: 1;
+  display: none;
+  animation: popup 1s both;
+}
+.message-box .finish .close {
+  align-self: flex-end;
+}
+.message-box .finish .close img {
+  width: 20px;
+}
+.message-box .finish img {
+  width: 50px;
+}/*# sourceMappingURL=style.css.map */

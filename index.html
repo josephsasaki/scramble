@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="style/style.css" type="text/css"> 
+    <meta name="viewport" content="width=device-width" />
+    <meta charset="UTF-8">
+    <title>Cram</title>
+    <link rel="icon" href="images/icon.ico">
+  </head>
+
+  <body>
+
+    <div class="header">
+      <img class="logo" src="images/logo.png"></img>
+    </div>
+    <div class="game-container">
+      <div class="grid" id="grid"></div>
+      <div class="control-container">
+        <div class="box" id="box" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+        <div class="buttons-container">
+          <a class="reset" onclick="reset()"><img class="logo" src="images/reset.png"></img></a>
+          <a class="shuffle" onclick="shuffle()"><img class="logo" src="images/shuffle.png"></img></a>
+          <a class="check" onclick="check()">CHECK</a>
+        </div>
+      </div>
+    </div>
+    <div class="message-box" id="message-box">
+      <div class="finish" id="finish">
+        <a class="close" onclick="closePopup()"> <img class="logo" src="images/close.png"></img></a>
+        <img src="images/winner.png">
+        <h1>Congratulations!</h1>
+        <p class="emoji-grid" id="emoji-grid">
+          
+        </p>
+      </div>
+    </div>
+  
+    <script src="scripts/cookies.js"></script>
+    <script src="scripts/seedableRandom.js"></script>
+    <script src="scripts/confetti.js"></script>
+    <script src="scripts/english.js"></script>
+    <script src="scripts/italian.js"></script>
+    <script src="scripts/dragDropTouch.js"></script>
+    <script src="scripts/script.js"></script>
+  </body>
+</html>
