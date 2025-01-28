@@ -25,26 +25,36 @@ let CURRENT_ROUND;
 
 /**
  * Run when the HTML is loaded, and sets up the game.
- * Here, the grid slots are first generated. Then cookies are checked for game progress.
+ * First, the grid slots are generated. Next, game progress is checked in the cookies.
+ * If there are no cookies, there is no saved progress and the game starts from the first round.
+ * If cookies are found, the tiles are placed accordingly up till the saved round, and then the game
+ * resumes from the next round.
  */
 function gameSetup() {
     // generate grid slots
-    generateSlots();
-    // get current round
-    if (cookiesPresent()) {
+    generateSlots()
+    // from cookies, retrieve saved game progress, if present
+    if (!cookiesPresent()) {
         CURRENT_ROUND = 0;
+        generateTiles(round=0);
     }
     else {
-        CURRENT_ROUND = parseInt(getCookie("round"))
+        let roundsCompletedIndex = parseInt(getCookie("round"));
+        // generate all the tiles already completed
+        for (let i = 0; i <= roundsCompletedIndex; i++) {
+            generateTiles(round=i, delay=false);
+        }
+        // move these tiles to their correct locations
+        let savedTileData = getCookie("save");
+        stringToGrid(savedTileData);
+        // Update current round
+        if (roundsCompletedIndex==4) {
+            finish();
+        } else {
+            CURRENT_ROUND = roundsCompletedIndex + 1;
+            generateTiles(CURRENT_ROUND)
+        }
     }
-
-    if (CURRENT_ROUND == 0) {
-        generateTiles(0);
-    }
-    elif (CURRENT_ROUND < 5) {
-
-    }
-
 }
 
 /**
@@ -62,7 +72,6 @@ function generateSlots() {
         grid.appendChild(slot);
     }
 }
-
 
 /**
  * Generate the sequence of letters that will appear in rounds throughout the game.
@@ -133,7 +142,6 @@ function generateLetters() {
     }
     return letters;
 }
-
 
 /**
  * Generate the letter tiles for a particular round, and add the divs to the letter box.
