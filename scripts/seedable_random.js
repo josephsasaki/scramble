@@ -16,27 +16,27 @@ RNG.prototype.nextFloat = function() {
 }
 RNG.prototype.nextRange = function(start, end) {
     // returns in range [start, end): including start, excluding end
-    // can't modulu nextInt because of weak randomness in lower bits
-    var rangeSize = end - start;
-    var randomUnder1 = this.nextInt() / this.m;
+    // can't modulo nextInt because of weak randomness in lower bits
+    let rangeSize = end - start;
+    let randomUnder1 = this.nextInt() / this.m;
     return start + Math.floor(randomUnder1 * rangeSize);
 }
 RNG.prototype.choice = function(array) {
     return array[this.nextRange(0, array.length)];
 }
 
-function generateGlobalRNG(testing) {
+function generateGlobalRNG(testing=false) {
     if (testing) {
-        var seed = Math.random();
+        let seed = Math.random();
         return new RNG(seed);
     }
     // Specified date
-    var specifiedDate = new Date('2023-01-01'); // For example, January 1, 2023
+    let specifiedDate = new Date('2023-01-01'); // For example, January 1, 2023
     // Current date
-    var currentDate = new Date();
+    let currentDate = new Date();
     // Calculate the difference in milliseconds between the two dates
-    var timeDifference = currentDate.getTime() - specifiedDate.getTime();
+    let timeDifference = currentDate.getTime() - specifiedDate.getTime();
     // Convert milliseconds to days (1 day = 24 * 60 * 60 * 1000 milliseconds)
-    var seed = Math.floor(timeDifference / (1000 * 60 * 60 * 24))*123;
+    let seed = Math.floor(timeDifference / (1000 * 60 * 60 * 24))*123;
     return new RNG(seed);
 }

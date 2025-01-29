@@ -23,7 +23,7 @@ const LOCKED_COLOURS = [
     ["#b18dcf", "#785f8d"],
     ["#e39b9b", "#a17070"]
 ];
-const GLOBAL_RNG = generateGlobalRNG(testing=false);
+const GLOBAL_RNG = generateGlobalRNG();
 const LETTERS =  generateLetters();
 const VALID_WORDS_CACHE = [];
 let CURRENT_ROUND;

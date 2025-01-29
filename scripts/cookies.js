@@ -17,7 +17,6 @@ function getMidnightComing() {
     return midnight.toUTCString();
 }
 
-
 /**
  * Adds a cookie to the document, which has an expiry at midnight.
  * Used for keeping user progress.
@@ -55,7 +54,7 @@ function getCookie(cookieName) {
 }
 
 /**
- * Checks whether there are any cookies present
+ * Checks whether there are any cookies present.
  */
 function cookiesPresent() {
     return (document.cookie.length != 0)
