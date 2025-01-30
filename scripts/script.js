@@ -1,5 +1,3 @@
-// http link for opening page on other devices
-// 192.168.0.161:5500/Version_2/
 
 
 /** ---------- GLOBALS ---------- */ 
