@@ -432,14 +432,20 @@ async function allValidWords(words, indexes) {
     let validity = []
     for (let i = 0, word; i < words.length; i++) {
         word = words[i]
+        console.log(VALID_WORDS_CACHE)
         if (VALID_WORDS_CACHE.includes(word)) {
             validity.push(true);
         }
         else {
-            VALID_WORDS_CACHE.push(word);
-            validity.push(await isValidWord(word));
+            result = await isValidWord(word);   
+            validity.push(result);
+            if (result) {
+                VALID_WORDS_CACHE.push(word);
+            }
         }
     }
+    console.log(words)
+    console.log(validity)
     if (validity.every(Boolean)) {
         return true;
     }
