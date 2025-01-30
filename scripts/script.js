@@ -337,8 +337,8 @@ async function checkRound() {
     // lock all the letters
     lockValidTiles(words, indexes)
     // save cookies up until this point
-    //setCookie("save", storeProgressAsString(), 1);
-    //setCookie("round", CURRENT_ROUND, 1);
+    setCookie("save", storeProgressAsString(), 1);
+    setCookie("round", CURRENT_ROUND, 1);
     // move to the next round
     // 5 rounds must be completed before the game is finished
     setTimeout(function(){
