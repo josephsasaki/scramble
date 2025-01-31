@@ -25,7 +25,7 @@ const GLOBAL_RNG = generateGlobalRNG();
 const LETTERS =  generateLetters();
 const VALID_WORDS_CACHE = [];
 let CURRENT_ROUND;
-let CHECK_IS_RUNNING = false;
+let BLOCK_CHECK = false;
 
 
 /** ---------- GAME GENERATION ---------- */ 
@@ -311,18 +311,18 @@ function shuffleLetters() {
  * If conditions are not met, the relevant error messaging it produced.
  */
 async function checkRound() {
-    if (CHECK_IS_RUNNING) {
+    if (BLOCK_CHECK) {
         return;
     }
-    CHECK_IS_RUNNING = true;
+    BLOCK_CHECK = true;
 
     if (!allLettersPlaced()) {
-        CHECK_IS_RUNNING = false;
+        BLOCK_CHECK = false;
         return;
     }
     let letterGrid = generateLetterGrid()
     if (!isAllConnected(letterGrid)) {
-        CHECK_IS_RUNNING = false;
+        BLOCK_CHECK = false;
         return;
     }
     let found = extractWords(letterGrid);
@@ -330,7 +330,7 @@ async function checkRound() {
     let indexes = found[1];
     let validWords = await allValidWords(words, indexes);
     if (!validWords) {
-        CHECK_IS_RUNNING = false;
+        BLOCK_CHECK = false;
         return;
     }
     // if this point reached, valid solution
@@ -342,13 +342,15 @@ async function checkRound() {
     // move to the next round
     // 5 rounds must be completed before the game is finished
     setTimeout(function(){
-        CHECK_IS_RUNNING = false;
+        BLOCK_CHECK = false;
         if (CURRENT_ROUND<4) {
             CURRENT_ROUND+=1;
             generateTiles(CURRENT_ROUND);
         }
         else {
+            BLOCK_CHECK = true;
             gameFinish();
+            
         }
     }, 1500);
     
