@@ -15,11 +15,11 @@ const EASY_ROUND_PROBABILITY = 0.7
 const FOURTH_VOWEL_PROBABILITY = 0.5
 const FOURTH_EASY_CONSONANT_PROBABILITY = 0.5
 const LOCKED_COLOURS = [
-    ["#F6CE46", "#c7a537"],
-    ["#92D050", "#6c9a3b"],
-    ["#9BC2E6", "#6c87a0"],
-    ["#b18dcf", "#785f8d"],
-    ["#e39b9b", "#a17070"]
+    ["#F7D155", "#C9A83B"],
+    ["#B8E18E", "#7FB545"],
+    ["#BDD8EF", "#849CAE"],
+    ["#DED0EB", "#A595B7"],
+    ["#F0CCCC", "#B48D8D"]
 ];
 const GLOBAL_RNG = generateGlobalRNG();
 const LETTERS =  generateLetters();
