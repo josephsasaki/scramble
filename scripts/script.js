@@ -347,7 +347,6 @@ async function checkRound() {
         return;
     }
     let foundWords = extractWords(letterGrid);
-    console.log(foundWords);
     await setAllWordsValidity(foundWords);
     if (!allWordsAreValid(foundWords)) {
         BLOCK_CHECK = false;
@@ -736,7 +735,7 @@ async function isValidWord(word) {
 function highlightIncorrect(foundWords) {
     let invalidIDs = [];
     foundWords.forEach(wordObj => {
-        if (!wordObj.validity) {
+        if (!wordObj.isValid) {
             invalidIDs = invalidIDs.concat(indexToIDConverter(wordObj))
         }
     })
@@ -819,6 +818,7 @@ function gameFinish() {
  * Opens the popup showing the game is finished.
  */
 function openPopup() {
+    createEmojiGrid();
     let messageBox = document.getElementById("message-box");
     messageBox.style.backgroundColor= "rgba(100, 100, 100, 0.8)";
     messageBox.style.pointerEvents = "auto";
@@ -842,8 +842,8 @@ function closePopup() {
 
 
 function createEmojiGrid() {
-    let htmlEmojiGrid = document.getElementById("emoji-grid");
-    emojiCodes = ["🟨", "🟩", "🟦", "🟪", "🟥", "⬜"];
+    const htmlEmojiGrid = document.getElementById("emoji-grid");
+    const emojiCodes = ["🟨", "🟩", "🟦", "🟪", "🟥", "⬜"];
 
     let txt = "";
     for (let i = 0; i < 8; i++) {
