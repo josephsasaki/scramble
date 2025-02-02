@@ -1,5 +1,24 @@
 
 
+/** ---------- OBJECTS ---------- */
+
+class Word {
+    constructor(word, direction, lineIndex, startIndex, endIndex) {
+        // attributes
+        this.word = word;
+        this.direction = direction;
+        this.lineIndex = lineIndex;
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
+        this.validity = null;
+        // methods
+        this.setValidity = function(validity) {
+            this.validity = validity;
+        };
+    }
+}
+
+
 /** ---------- GLOBALS ---------- */ 
 
 
@@ -189,7 +208,6 @@ function generateTiles(roundIndex, delay=true) {
     })
 }
 
-
 /**
  * Given the cookie data, move all the tiles generated from previous rounds to their correct 
  * positions.
@@ -320,17 +338,17 @@ async function checkRound() {
         BLOCK_CHECK = false;
         return;
     }
-    let found = extractWords(letterGrid);
-    let words = found[0];
-    let indexes = found[1];
-    let validWords = await allValidWords(words, indexes);
-    if (!validWords) {
+    let foundWords = extractWords(letterGrid);
+    console.log(foundWords);
+    await setAllWordsValidity(foundWords);
+    if (!allWordsAreValid(foundWords)) {
         BLOCK_CHECK = false;
+        highlightIncorrect(foundWords);
         return;
     }
     // if this point reached, valid solution
     // lock all the letters
-    lockValidTiles(words, indexes)
+    lockValidTiles(foundWords)
     // save cookies up until this point
     setCookie("save", storeProgressAsString(), 1);
     setCookie("round", CURRENT_ROUND, 1);
@@ -347,8 +365,6 @@ async function checkRound() {
             gameFinish();
         }
     }, 1500);
-    
-    
 }
 
 /**
@@ -424,26 +440,29 @@ function isAllConnected(letterGrid) {
  * 
  * @param {array[string]} words - a list of words to check whether valid.
  */
-async function allValidWords(words, indexes) {
-    let validity = []
-    for (let i = 0, word; i < words.length; i++) {
-        word = words[i]
-        if (VALID_WORDS_CACHE.includes(word)) {
-            validity.push(true);
+async function setAllWordsValidity(foundWords) {
+    for (let i = 0, wordObj; i < foundWords.length; i++) {
+        wordObj = foundWords[i];
+        if (VALID_WORDS_CACHE.includes(wordObj.word)) {
+            wordObj.setValidity(true);
         }
         else {
-            result = await isValidWord(word);   
-            validity.push(result);
+            result = await isValidWord(wordObj.word);   
+            wordObj.setValidity(result);
             if (result == true) {
-                VALID_WORDS_CACHE.push(word);
+                VALID_WORDS_CACHE.push(wordObj.word);
             }
         }
     }
-    if (validity.every(Boolean)) {
-        return true;
+}
+
+function allWordsAreValid(foundWords) {
+    for (let i = 0; i < foundWords.length; i++) {
+        if (!foundWords[i].validity) {
+            return false;
+        }
     }
-    highlightIncorrect(words, indexes, validity);
-    return false;
+    return true;
 }
 
 /**
@@ -451,15 +470,15 @@ async function allValidWords(words, indexes) {
  * 
  * @param {*} indexes 
  */
-function lockValidTiles(words, indexes) {
-    let valid_indexes = [];
-    for (let i = 0; i < words.length; i++) {
-        valid_indexes = valid_indexes.concat(indexConverter(indexes[i]));
-    }
-    valid_indexes = [...new Set(valid_indexes)];
+function lockValidTiles(foundWords) {
+    let slotIDs = [];
+    foundWords.forEach(wordObj => {
+        slotIDs = slotIDs.concat(indexToIDConverter(wordObj));
+    })
+    slotIDs = [...new Set(slotIDs)];
     let tiles = [];
-    for (let i = 0, tile, slot; i < valid_indexes.length; i++) {
-        slot = document.getElementById("slot"+String(valid_indexes[i]))
+    for (let i = 0, tile, slot; i < slotIDs.length; i++) {
+        slot = document.getElementById("slot"+String(slotIDs[i]))
         tile = slot.childNodes[0];
         tiles.push(tile);
     }
@@ -468,7 +487,6 @@ function lockValidTiles(words, indexes) {
             tile.setAttribute('draggable', "false");
             tile.style.backgroundColor = LOCKED_COLOURS[CURRENT_ROUND][0];
             tile.style.boxShadow = "0px -4px inset " + LOCKED_COLOURS[CURRENT_ROUND][1];
-
             tile.classList.add('locked');
             tile.addEventListener('animationend', function() {
                 tile.classList.remove('locked');
@@ -579,65 +597,65 @@ function extractWords(letterGrid) {
     }
     // Now that we have found which positions are valid in each directions, words can be extracted.
     let words = [];
-    let indexes = [];
-    let valid = [];
     // find horizontal words
-    for (let i=0, row; i<size; i++) {
-        row = letterGrid[i];
-        valid = validH[i];
-        found = lineExtractWords(row, valid, i, 'row');
-        words = words.concat(found[0]);
-        indexes = indexes.concat(found[1]);
+    for (let i=0, foundWords; i<size; i++) {
+        foundWords = _lineExtractWords(letterGrid[i], validH[i], i, 'row');
+        words = words.concat(foundWords);
     }
     // find vertical words
-    for (let i=0, col; i<size; i++) {
-        col = [];
+    for (let i=0, col, valid, foundWords; i<size; i++) {
+        col=[];
         valid = [];
         for (let j=0; j<size; j++) {
             col.push(letterGrid[j][i]);
             valid.push(validV[j][i]);
         }
-        found = lineExtractWords(col, valid, i, 'col');
-        words = words.concat(found[0]);
-        indexes = indexes.concat(found[1]);
+        foundWords = _lineExtractWords(col, valid, i, 'col');
+        words = words.concat(foundWords);
     }
-    return [words, indexes];
+    return words;
 }
 
-/**
- * Extracts all the words within a single line (a column or row).
- * 
- * @param {array[string]} line - the ar
- * @param {array[boolean]} valid - the indexes of valid words
- * @param {number} index - the index of the column or row
- * @param {string} direction - whether a column or row
- * @returns {array[words], array[number]}
- */
-function lineExtractWords(line, valid, index, direction) {
+
+function _lineExtractWords(line, valid, lineIndex, direction) {
     let words = [];
-    let indexes = [];
-    let currentWord = "";
-    let currentIndex = [direction, index, 0, 0];
-    for (let i=0; i<line.length; i++) {
-        if (line[i]!=null && valid[i]) {
-            currentWord += line[i];
-            currentIndex[3]+=1;
-        } 
-        else if (currentWord!="") {
-            words.push(currentWord);
-            currentWord = "";
-            indexes.push(currentIndex);
-            currentIndex = [direction, index, i+1, i+1];
+    let currentLetters = [];
+    let currentStartIndex = 0;
+    let word;
+    for (let i = 0; i < line.length; i++) {
+        // check if we should add a word to the words. There are two situations to do this:
+        // 1. We've hit an invalid slot but the currentWord is non-empty.
+        // 2. We've reached the end of the grid and the currentWord is non-empty.
+        if (!valid[i] && currentLetters.length != 0) {
+            word = new Word(
+                currentLetters.join(""), 
+                direction, 
+                lineIndex, 
+                currentStartIndex, 
+                i-1);
+            words.push(word);
+            currentLetters = [];
+            currentStartIndex = i + 1;
+        }
+        if (i == line.length - 1 && currentLetters.length != 0) {
+            currentLetters.push(line[i])
+            word = new Word(
+                currentLetters.join(""), 
+                direction, 
+                lineIndex,
+                currentStartIndex, 
+                i);
+            words.push(word);
+        }
+        // valid letter
+        else if (valid[i]) {
+            currentLetters.push(line[i])
         }
         else {
-            currentIndex = [direction, index, i+1, i+1];
+            currentStartIndex = i + 1;
         }
     }
-    if (currentWord!="") {
-        words.push(currentWord);
-        indexes.push(currentIndex);
-    }
-    return [words, indexes];
+    return words;
 }
 
 
@@ -699,26 +717,22 @@ async function isValidWord(word) {
  * @param {*} indexes 
  * @param {*} validity 
  */
-function highlightIncorrect(words, indexes, validity) {
-    let invalid_indexes = [];
-    for (let i = 0; i < words.length; i++) {
-        if (validity[i]) {
-            continue;
+function highlightIncorrect(foundWords) {
+    let invalidIDs = [];
+    foundWords.forEach(wordObj => {
+        if (!wordObj.validity) {
+            invalidIDs = invalidIDs.concat(indexToIDConverter(wordObj))
         }
-        invalid_indexes = invalid_indexes.concat(indexConverter(indexes[i]));
-    }
-    invalid_indexes = [...new Set(invalid_indexes)];
-
+    })
+    invalidIDs = [...new Set(invalidIDs)];
     let tiles = [];
-    for (let i = 0, tile, slot; i < invalid_indexes.length; i++) {
-        slot = document.getElementById("slot"+String(invalid_indexes[i]))
+    for (let i = 0, tile, slot; i < invalidIDs.length; i++) {
+        slot = document.getElementById("slot"+String(invalidIDs[i]))
         tile = slot.childNodes[0];
         tiles.push(tile);
     }
-
     tiles.forEach(tile => {
         tile.classList.add('invalid-tile');
-
         tile.addEventListener('animationend', function() {
             tile.classList.remove('invalid-tile');
         }, { once: true });
@@ -730,21 +744,20 @@ function highlightIncorrect(words, indexes, validity) {
  * @param {array} index - (direction, index, start, end)
  * @returns {array} coordinate on grid
  */
-function indexConverter(index) {
-    let formatted_indexes = [];
-    let direction = index[0];
-    let i = index[1];
-    let start = index[2];
-    let end = index[3];
-    for (let n = start, val; n < end; n++) {
-        if (direction=="row") {
-            val = (i*8)+n;
+function indexToIDConverter(wordObj) {
+    let tileIDs = [];
+    console.log(wordObj);
+
+    for (let n = wordObj.startIndex, tileID; n < wordObj.endIndex + 1; n++) {
+        if (wordObj.direction=="row") {
+            tileID = (wordObj.lineIndex*8)+n;
         } else {
-            val = (n*8)+i;
+            tileID = (n*8)+wordObj.lineIndex;
         }
-        formatted_indexes.push(val);
+        tileIDs.push(tileID);
     }
-    return formatted_indexes;
+    console.log(tileIDs);
+    return tileIDs;
 }
 
 /**
