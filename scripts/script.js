@@ -2,7 +2,15 @@
 
 /** ---------- OBJECTS ---------- */
 
+
 class Word {
+    /**
+     * @param {string} word - the word represented
+     * @param {string} direction - whether the word is on a row or column ("row"/"col")
+     * @param {integer} lineIndex - the index of the row or column
+     * @param {integer} startIndex - the starting index on the row or column
+     * @param {integer} endIndex - the ending index on the row or column
+     */
     constructor(word, direction, lineIndex, startIndex, endIndex) {
         // attributes
         this.word = word;
@@ -10,10 +18,10 @@ class Word {
         this.lineIndex = lineIndex;
         this.startIndex = startIndex;
         this.endIndex = endIndex;
-        this.validity = null;
+        this.isValid = null;
         // methods
         this.setValidity = function(validity) {
-            this.validity = validity;
+            this.isValid = validity;
         };
     }
 }
@@ -174,7 +182,7 @@ function generateLetters() {
 /**
  * Generate the letter tiles for a particular round, and add the divs to the letter box.
  * 
- * @param {number} roundIndex - the round index to which tiles should be made
+ * @param {integer} roundIndex - the round index to which tiles should be made
  * @param {boolean} delay - whether the tiles appear with a delay (default to true)
  */
 function generateTiles(roundIndex, delay=true) {
@@ -236,7 +244,7 @@ function moveTilesToSavedPositions(savedTileData) {
  * Randomly generates true or false with certain probability.
  * That is, generates single Bernoulli trial outcome.
  * 
- * @param {*} p - probability of success,
+ * @param {float} p - probability of success,
  * @returns {boolean} whether the Bernoulli trial was successful
  */
 function binOut(p) {
@@ -251,7 +259,7 @@ function binOut(p) {
  * Pick a n elements from an array.
  * 
  * @param {array} array - array to select from
- * @param {number} n - the number of elements to take in subset
+ * @param {integer} n - the number of elements to take in subset
  * @returns {array} - random subset of array
  */
 function pick(array, n) {
@@ -436,9 +444,9 @@ function isAllConnected(letterGrid) {
 }
 
 /**
- * Check whether all the words in the grid are valid.
+ * Assigns the validity to each found word.
  * 
- * @param {array[string]} words - a list of words to check whether valid.
+ * @param {array[Word]} foundWords - the list of words to assign validity
  */
 async function setAllWordsValidity(foundWords) {
     for (let i = 0, wordObj; i < foundWords.length; i++) {
@@ -456,9 +464,15 @@ async function setAllWordsValidity(foundWords) {
     }
 }
 
+/**
+ * The following function determines whether all the words in a words list are valid.
+ * 
+ * @param {array[Word]} foundWords - the list of words to determine if valid
+ * @returns {boolean}
+ */
 function allWordsAreValid(foundWords) {
     for (let i = 0; i < foundWords.length; i++) {
-        if (!foundWords[i].validity) {
+        if (!foundWords[i].isValid) {
             return false;
         }
     }
@@ -466,9 +480,9 @@ function allWordsAreValid(foundWords) {
 }
 
 /**
- * Produces locking animation to valid tiles.
+ * Produces locking animation to all valid tiles.
  * 
- * @param {*} indexes 
+ * @param {array[Word]} foundWords - list of words to lock
  */
 function lockValidTiles(foundWords) {
     let slotIDs = [];
@@ -524,8 +538,8 @@ function generateLetterGrid() {
  * Converts a 1D array into a 2D array given the dimensions of the desired 2D array.
  * 
  * @param {array[string]} flatArray - the 1D array to be converted to 2D
- * @param {number} rows - the number of rows in the desired 2D array (default to 8)
- * @param {number} cols - the number of columns in the desired 2D array (default to 8)
+ * @param {integer} rows - the number of rows in the desired 2D array (default to 8)
+ * @param {integer} cols - the number of columns in the desired 2D array (default to 8)
  * @returns {array[array[string]]} 2D version of passed flatArray
  */
 function convertTo2DArray(flatArray, rows=8, cols=8) {
@@ -543,7 +557,7 @@ function convertTo2DArray(flatArray, rows=8, cols=8) {
 /**
  * Shows a message to the user indicating something is invalid in their solution.
  * 
- * @param {*} messageContent - the message which should appear
+ * @param {string} messageContent - the message which should appear
  */
 function showInvalidMessage(messageContent) {
     let errorBox = document.getElementById("message-box");
@@ -558,17 +572,10 @@ function showInvalidMessage(messageContent) {
 }
 
 /**
- * Finds all the words in the letters grid.
- * Not only returns the words, but also the indexes of each of the words found.
- * The words are simply an array of strings.
- * The indexes are more complex. Each word has a position, which consists of a 
- * 0) a direction (vertical or horizontal) 
- * 1) row/column index
- * 2) starting index in row/column
- * 3) ending index in row/column
+ * Finds all the words in the letters grid, and generates Word objects for each word.
  * 
  * @param {array[array[string]]} letterGrid - {array[array[string]]} 2D array of letters representing the round solution
- * @returns {array[array[string], array[number]]} word and corresponding index data
+ * @returns {array[Word]} - list of words (as Word objects) found in grid
  */
 function extractWords(letterGrid) {
     let size = letterGrid.length;
@@ -596,28 +603,36 @@ function extractWords(letterGrid) {
         }
     }
     // Now that we have found which positions are valid in each directions, words can be extracted.
-    let words = [];
+    let allFoundWords = [];
     // find horizontal words
-    for (let i=0, foundWords; i<size; i++) {
-        foundWords = _lineExtractWords(letterGrid[i], validH[i], i, 'row');
-        words = words.concat(foundWords);
+    for (let i=0, directionFoundWords; i<size; i++) {
+        directionFoundWords = lineExtractWords(letterGrid[i], validH[i], i, 'row');
+        allFoundWords = allFoundWords.concat(directionFoundWords);
     }
     // find vertical words
-    for (let i=0, col, valid, foundWords; i<size; i++) {
+    for (let i=0, col, valid, directionFoundWords; i<size; i++) {
         col=[];
         valid = [];
         for (let j=0; j<size; j++) {
             col.push(letterGrid[j][i]);
             valid.push(validV[j][i]);
         }
-        foundWords = _lineExtractWords(col, valid, i, 'col');
-        words = words.concat(foundWords);
+        directionFoundWords = lineExtractWords(col, valid, i, 'col');
+        allFoundWords = allFoundWords.concat(directionFoundWords);
     }
-    return words;
+    return allFoundWords;
 }
 
-
-function _lineExtractWords(line, valid, lineIndex, direction) {
+/**
+ * Find the words on a single line (whether that be a column or row).
+ * 
+ * @param {array[string]} line - either a column or row from the letters grid
+ * @param {array[boolean]} valid - whether each letter contributes to a word on the line
+ * @param {integer} lineIndex - the index of the row/column
+ * @param {integer} direction - whether the line is a row or column
+ * @returns {array[Word]}
+ */
+function lineExtractWords(line, valid, lineIndex, direction) {
     let words = [];
     let currentLetters = [];
     let currentStartIndex = 0;
@@ -660,7 +675,8 @@ function _lineExtractWords(line, valid, lineIndex, direction) {
 
 
 /**
- * Checks whether the word is a valid English word.
+ * Checks whether the word is a valid word, by calling a dictionary API.
+ * 
  * @param {string} word - word to be checked
  * @returns {boolean} - whether the word is valid.
  */
@@ -713,9 +729,9 @@ async function isValidWord(word) {
 }
 
 /**
+ * Highlights all the words that were invalid, by adding an animation.
  * 
- * @param {*} indexes 
- * @param {*} validity 
+ * @param {array[Word]} foundWords - list of words
  */
 function highlightIncorrect(foundWords) {
     let invalidIDs = [];
@@ -740,14 +756,13 @@ function highlightIncorrect(foundWords) {
 }
 
 /**
- * Converts a (direction, index, start, end) index into a coordinate on the grid.
- * @param {array} index - (direction, index, start, end)
- * @returns {array} coordinate on grid
+ * Produces a list of slot IDs for a given a word object.
+ * 
+ * @param {Word} wordObj - the word to find the slot IDs for
+ * @returns {array[string]} - list of slot IDs
  */
 function indexToIDConverter(wordObj) {
     let tileIDs = [];
-    console.log(wordObj);
-
     for (let n = wordObj.startIndex, tileID; n < wordObj.endIndex + 1; n++) {
         if (wordObj.direction=="row") {
             tileID = (wordObj.lineIndex*8)+n;
@@ -756,7 +771,6 @@ function indexToIDConverter(wordObj) {
         }
         tileIDs.push(tileID);
     }
-    console.log(tileIDs);
     return tileIDs;
 }
 
