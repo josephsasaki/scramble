@@ -193,25 +193,19 @@ function generateTiles(roundIndex, delay=true) {
  * Given the cookie data, move all the tiles generated from previous rounds to their correct 
  * positions.
  * 
- * @param {string} savedTileData 
+ * @param {string} savedTileData the positions of each tile in json format.
  */
 function moveTilesToSavedPositions(savedTileData) {
-    var letterBox = document.getElementById("box");
-    var strArray = savedTileData.split("-");
-    var tile, slot, x, round;
-    strArray.forEach(str => {
-        x = str.split(":");
-        tile = document.getElementById(x[0]);
-        if (x[1]!="#") {
-            round = parseInt(tile.getAttribute("round"));
-            tile.setAttribute('draggable', "false");
-            tile.style.backgroundColor = LOCKED_COLOURS[round][0];
-            tile.style.boxShadow = "0px -4px inset " + LOCKED_COLOURS[round][1];
-            slot = document.getElementById(x[1]);
-            slot.appendChild(tile);
-        } else {
-            letterBox.appendChild(tile);
-        }
+    let tilePositions = JSON.parse(savedTileData);
+    let tile, slot, round;
+    tilePositions.forEach(position => {
+        tile = document.getElementById(position[0]);
+        round = parseInt(tile.getAttribute("round"));
+        tile.setAttribute('draggable', "false");
+        tile.style.backgroundColor = LOCKED_COLOURS[round][0];
+        tile.style.boxShadow = "0px -4px inset " + LOCKED_COLOURS[round][1];
+        slot = document.getElementById(position[1]);
+        slot.appendChild(tile);
     });
 }
 
@@ -758,22 +752,24 @@ function indexConverter(index) {
 
 /**
  * Stores all the grid data into a string to be stored in a cookie.
+ * The data is stored in JSON format. Each tile id is connected to a 
+ * slot id.
  * 
- * @returns {string} positions of all the tiles placed
+ * The data is stored as a list of positions, each position an array with the tile id
+ * in the first index, and its position in the second (slot id).
+ * 
+ * @returns {string} positions of all the tiles placed, json formatted
  */
 function storeProgressAsString() {
-    var tileArray = [];
-    var tiles = Array.prototype.slice.call( document.getElementsByClassName("tile") );
-    var slot;
+    let tilePositions = [];
+    let tiles = Array.prototype.slice.call( document.getElementsByClassName("tile") );
+    let slot, position;
     tiles.forEach(tile => {
-        if (tile.parentElement.className=="slot") {
-            slot = tile.parentElement;
-            tileArray.push(tile.id + ":" + slot.id);
-        } else {
-            tileArray.push(tile.id + ":#");
-        }
+        slot = tile.parentElement;
+        position = [tile.id, slot.id];
+        tilePositions.push(position);
     });
-    return tileArray.join("-");
+    return JSON.stringify(tilePositions);
 }
 
 
