@@ -1,3 +1,11 @@
+.fredoka-font {
+  font-family: "Fredoka", serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
 @keyframes appear {
   0% {
     display: none;
@@ -122,7 +130,7 @@ body {
   padding: 0;
   display: flex;
   justify-content: center;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Fredoka";
 }
 
 .header {
