@@ -57,6 +57,7 @@ function gameSetup() {
         moveTilesToSavedPositions(savedTileData);
         // Update current round
         if (roundsCompletedIndex==4) {
+            CURRENT_ROUND = roundsCompletedIndex;
             gameFinish();
         } else {
             CURRENT_ROUND = roundsCompletedIndex + 1;
@@ -344,7 +345,6 @@ async function checkRound() {
         else {
             BLOCK_CHECK = true;
             gameFinish();
-            
         }
     }, 1500);
     
@@ -428,20 +428,17 @@ async function allValidWords(words, indexes) {
     let validity = []
     for (let i = 0, word; i < words.length; i++) {
         word = words[i]
-        console.log(VALID_WORDS_CACHE)
         if (VALID_WORDS_CACHE.includes(word)) {
             validity.push(true);
         }
         else {
             result = await isValidWord(word);   
             validity.push(result);
-            if (result) {
+            if (result == true) {
                 VALID_WORDS_CACHE.push(word);
             }
         }
     }
-    console.log(words)
-    console.log(validity)
     if (validity.every(Boolean)) {
         return true;
     }
