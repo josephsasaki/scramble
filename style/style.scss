@@ -238,6 +238,7 @@ body {
         border-radius: var(--border-radius);
         margin-top: 10px;
         animation: fade-away 2s forwards;
+        white-space: pre-wrap;
     }
     .finish {
         background-color: white;
@@ -252,6 +253,10 @@ body {
 
         display: none;
         animation: popup 1s both;
+
+        .emoji-row {
+            margin: 0px;
+        }
 
         .close {
             align-self: flex-end;

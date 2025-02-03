@@ -838,29 +838,30 @@ function closePopup() {
 }
 
 
-/** ---------- leftovers ---------- */ 
-
-
 function createEmojiGrid() {
-    const htmlEmojiGrid = document.getElementById("emoji-grid");
     const emojiCodes = ["🟨", "🟩", "🟦", "🟪", "🟥", "⬜"];
 
-    let txt = "";
+    let emojiRow;
+    let slotID;
+    let slot;
+    let tile;
+    let round;
     for (let i = 0; i < 8; i++) {
+        let emojiRowHTML = document.getElementById("emojiRow"+String(i));
+        emojiRow = [];
         for (let j = 0; j < 8; j++) {
-            let x = 8*i + j;
-            let slot = document.getElementById("slot"+String(x));
+            slotID = 8*i + j;
+            slot = document.getElementById("slot"+String(slotID));
             if (slot.hasChildNodes()) {
-                let tile = slot.childNodes[0];
-                let round = parseInt(tile.getAttribute("round"));
-                txt += emojiCodes[round];
+                tile = slot.childNodes[0];
+                round = parseInt(tile.getAttribute("round"));
+                emojiRow.push(emojiCodes[round]);
             } else {
-                txt += emojiCodes[5];
+                emojiRow.push(emojiCodes[5]);
             }
         }
-        txt += "\n";
+        emojiRowHTML.textContent = emojiRow.join(" ")
     }
-    htmlEmojiGrid.textContent = txt;
 }
 
 

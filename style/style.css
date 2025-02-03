@@ -273,6 +273,7 @@ body {
   border-radius: var(--border-radius);
   margin-top: 10px;
   animation: fade-away 2s forwards;
+  white-space: pre-wrap;
 }
 .message-box .finish {
   background-color: white;
@@ -286,6 +287,9 @@ body {
   opacity: 1;
   display: none;
   animation: popup 1s both;
+}
+.message-box .finish .emoji-row {
+  margin: 0px;
 }
 .message-box .finish .close {
   align-self: flex-end;
