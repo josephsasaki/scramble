@@ -837,17 +837,21 @@ function closePopup() {
     finish.style.display = "none";
 }
 
-
+/**
+ * The following function produces an emoji grid which represents the player's solution.
+ * The emoji grid is shown in the finished popup once the game has been completed.
+ */
 function createEmojiGrid() {
     const emojiCodes = ["🟨", "🟩", "🟦", "🟪", "🟥", "⬜"];
 
+    let emojiRowHTML;
     let emojiRow;
     let slotID;
     let slot;
     let tile;
     let round;
     for (let i = 0; i < 8; i++) {
-        let emojiRowHTML = document.getElementById("emojiRow"+String(i));
+        emojiRowHTML = document.getElementById("emojiRow"+String(i));
         emojiRow = [];
         for (let j = 0; j < 8; j++) {
             slotID = 8*i + j;

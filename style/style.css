@@ -292,7 +292,8 @@ body {
   font-weight: 400;
 }
 .message-box .finish .emoji-row {
-  margin: 0px;
+  margin: -1px;
+  padding: 0px;
 }
 .message-box .finish .close {
   border-radius: 50%;
