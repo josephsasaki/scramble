@@ -254,15 +254,28 @@ body {
         display: none;
         animation: popup 1s both;
 
+        h1 {
+            font-weight: 400;
+        }
         .emoji-row {
             margin: 0px;
         }
-
         .close {
+            border-radius: 50%;
+            padding: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             align-self: flex-end;
+
+            cursor:pointer;
             img {
                 width: 20px;
             }
+            
+        }
+        .close:hover {
+            background-color: var(--gray-color);
         }
         img {
             width: 50px;
