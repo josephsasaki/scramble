@@ -681,14 +681,12 @@ function lineExtractWords(line, valid, lineIndex, direction) {
  */
 async function isValidWord(word) {
     word = word.toLowerCase();
-    const url_1 = `http://18.132.38.84:5000/validate-word-reverse/${word}`
-    const response_forward = await fetch(url_1, {
+    const url = `http://18.132.38.84:5000/validate-word-reverse/${word}`
+    const response = await fetch(url, {
         method: "GET"
     })
-    if (response_forward.status < 300) {
-        return true;
-    }
-    return false;
+    console.log(response.body)
+    return response.body
 }
 
 /**
