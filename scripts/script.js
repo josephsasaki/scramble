@@ -681,50 +681,14 @@ function lineExtractWords(line, valid, lineIndex, direction) {
  */
 async function isValidWord(word) {
     word = word.toLowerCase();
-    const url_1 = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+    const url_1 = `http://18.132.38.84:5000/validate-word-reverse/${word}`
     const response_forward = await fetch(url_1, {
         method: "GET"
     })
     if (response_forward.status < 300) {
         return true;
     }
-    reversed_word = word.split("").reverse().join("");
-    const url_2 = `https://api.dictionaryapi.dev/api/v2/entries/en/${reversed_word}`
-    const response_backward = await fetch(url_2, {
-        method: "GET"
-    })
-    if (response_backward.status < 300) {
-        return true;
-    }
     return false;
-
-    /** 
-    word = word.toLowerCase();
-    for (let i = 0, dict_word; i < ENGLISH_DICT.length; i++) {
-        dict_word = ENGLISH_DICT[i];
-        let n = dict_word.length;
-        if (n != word.length) {
-            continue;
-        }
-        forward_word_check: {
-            for (let j = 0; j < n; j++) {
-                if (dict_word[j]!=word[j]) {
-                    break forward_word_check;
-                }
-            }
-            return true;
-        }
-        backwards_word_check: {
-            for (let j = 0; j < n; j++) {
-                if (dict_word[j]!=word[n-1-j]) {
-                    break backwards_word_check;
-                }
-            }
-            return true;
-        }
-    }
-    return false;
-    */
 }
 
 /**
