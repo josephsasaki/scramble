@@ -686,7 +686,8 @@ async function isValidWord(word) {
         method: "GET"
     })
     const data = await response.json();  // Parse the JSON content
-    return (data.forwards || data.reversed)
+    result = data.forwards || data.reversed;
+    return result;
 }
 
 /**
