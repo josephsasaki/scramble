@@ -681,7 +681,7 @@ function lineExtractWords(line, valid, lineIndex, direction) {
  */
 async function isValidWord(word) {
     word = word.toLowerCase();
-    const url = `http://18.132.38.84:5000/validate-word-reverse/${word}`
+    const url = `https://scrabble-dictionary-api-3c202cce44fe.herokuapp.com/validate-word/${word}`
     const response = await fetch(url, {
         method: "GET"
     })
