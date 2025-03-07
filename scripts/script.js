@@ -685,8 +685,9 @@ async function isValidWord(word) {
     const response = await fetch(url, {
         method: "GET"
     })
-    console.log(response.body)
-    return response.body
+    const data = await response.json();  // Parse the JSON content
+    console.log(data);
+    return false
 }
 
 /**
