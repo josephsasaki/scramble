@@ -30,6 +30,7 @@ class Word {
 /** ---------- GLOBALS ---------- */ 
 
 
+const API_URL = "https://scrabble-dictionary-api-3c202cce44fe.herokuapp.com"
 const VOWELS = [
     'A', 'E', 'I', 'O', 'U'
 ];
@@ -60,12 +61,16 @@ let BLOCK_CHECK = false;
 
 /**
  * Run when the HTML is loaded, and sets up the game.
- * First, the grid slots are generated. Next, game progress is checked in the cookies.
+ * First, the API is activated. Second, the grid slots are generated. Next, game progress is checked in the cookies.
  * If there are no cookies, there is no saved progress and the game starts from the first round.
  * If cookies are found, the tiles are placed accordingly up till the saved round, and then the game
  * resumes from the next round.
  */
-function gameSetup() {
+async function gameSetup() {
+    // activate API
+    if (!checkAPI()) {
+        throw "API not working";
+    }
     // generate grid slots
     generateSlots()
     // from cookies, retrieve saved game progress, if present
@@ -92,6 +97,18 @@ function gameSetup() {
         }
     }
 }
+
+
+/**
+ * Call the scrabble API to check it is working, and also activate the Heroku dyno.
+ * 
+ * @param {boolean} active - whether the API is activated and working
+ */
+async function checkAPI() {
+    const response = await fetch(API_URL, {method: "GET"})
+    return response.ok;
+}
+
 
 /**
  * Generates the grid slots that letters can be dragged into. The function is run when the
